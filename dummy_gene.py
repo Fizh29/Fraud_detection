@@ -14,7 +14,6 @@ tarif_standar = {
     'J45.9': 2_300_000, 'I25.1': 5_000_000, 'E66.9': 1_000_000, 'Z00.0': 700_000
 }
 
-# Mapping diagnosis ke prosedur
 procedure_map = {
     'J00': ['93.9'], 'J18.9': ['96.04', '93.94'], 'I10': ['99.04'],
     'E11': ['99.10'], 'N39.0': ['57.94', '57.98'], 'M54.5': ['93.39'],
@@ -25,44 +24,40 @@ procedure_map = {
     'Z00.0': ['93.99']
 }
 
-# === Range waktu ===
 start_date = dt.date(2024, 1, 1)
 today = dt.date.today()
 
-# === 1) Generate NIK LIST (REALISTIK) ===
-num_patients = 1500   # hanya 1500 pasien, tapi total claim 5000 (realisitk)
+TARGET_ROWS = 5030  # <<< DI SINI DIGANTI
+
+num_patients = 1500
 
 def generate_nik():
     nik_raw = str(fake.random_number(digits=16))
-    return nik_raw.zfill(16)  # pastikan selalu 16 digit
+    return nik_raw.zfill(16)
 
 patient_NIKs = [generate_nik() for _ in range(num_patients)]
 
-# Distribusi kunjungan per pasien
 visit_distribution = random.choices(
     population=[1, 2, 3, 4],
     weights=[0.70, 0.20, 0.08, 0.02], 
     k=num_patients
 )
 
-# Expand ke list final NIK → ini menghasilkan >5000 rows
 NIK_list = []
 for nik, visits in zip(patient_NIKs, visit_distribution):
     NIK_list.extend([nik] * visits)
 
-# Pastikan panjang minimal 5000
-if len(NIK_list) < 5000:
-    needed = 5000 - len(NIK_list)
+if len(NIK_list) < TARGET_ROWS:
+    needed = TARGET_ROWS - len(NIK_list)
     NIK_list.extend(random.choices(patient_NIKs, k=needed))
 
 random.shuffle(NIK_list)
-NIK_list = NIK_list[:5000]
+NIK_list = NIK_list[:TARGET_ROWS]
 
-# === 2) Generate DUMMY CLAIMS ===
 diagnosis_codes = list(tarif_standar.keys())
 data = []
 
-for i in range(5000):
+for i in range(TARGET_ROWS):
     nik = NIK_list[i]
 
     age = random.randint(1, 90)
@@ -71,18 +66,13 @@ for i in range(5000):
 
     total_claim_amount = random.randint(500_000, 10_000_000)
     length_of_stay = random.choice([0, 1, 2, 3, 5, 7])
-    diag_code = random.choices(
-        diagnosis_codes,
-        weights=[10, 8, 12, 10, 7, 6, 5, 5, 5, 4, 3, 2, 2, 3, 3, 2, 2, 1, 1, 4],
-        k=1
-    )[0]
+    diag_code = random.choice(diagnosis_codes)
     proc_code = random.choice(procedure_map[diag_code])
 
-    # Service & claim date (lebih realistis)
     service_date = fake.date_between(start_date=start_date, end_date=today - dt.timedelta(days=14))
     claim_date = fake.date_between(start_date=service_date + dt.timedelta(days=3), end_date=today)
 
-    record = {
+    data.append({
         'NIK': nik,
         'NIK_valid': random.choice([0, 1]),
         'biometric_flag': random.choice([0, 1]),
@@ -100,13 +90,12 @@ for i in range(5000):
         'verification_method': random.choice(['auto', 'manual']),
         'tarif_standar_diagnosis': tarif_standar[diag_code],
         'diagnosis_cost_ratio': total_claim_amount / tarif_standar[diag_code]
-    }
-
-    data.append(record)
+    })
 
 df = pd.DataFrame(data)
-df = df.sort_values(by='claim_date')
-df.to_excel('dummy_claims_2024_2025.xlsx', index=False)
+df = df.sort_values('claim_date')
 
-print("✅ Dummy data klaim REALISTIK berhasil dibuat!")
-print(df.head(10))
+df.to_excel("dummy_claims_2024_2025.xlsx", index=False)
+
+print("✔ 5030 dummy claims successfully generated!")
+print(df.head())

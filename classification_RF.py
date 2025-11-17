@@ -40,6 +40,10 @@ model = RandomForestClassifier(
 
 model.fit(X_train_res, y_train_res)
 y_pred = model.predict(X_test)
+import joblib
+
+joblib.dump(model, "fraud_model.pkl")
+print("Model saved → fraud_model.pkl")
 
 print("\n=== Classification Report (IMPROVED) ===")
 print(classification_report(y_test, y_pred))
