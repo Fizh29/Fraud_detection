@@ -4,6 +4,7 @@ import random
 import datetime as dt
 
 fake = Faker('id_ID')
+#Faker dibikin untuk locale Indonesia → format tanggal, nomor, dll lebih sesuai.
 
 # Tarif standar diagnosis (perkiraan INA-CBGs)
 tarif_standar = {
@@ -23,13 +24,13 @@ procedure_map = {
     'J45.9': ['93.96'], 'I25.1': ['36.15', '99.24'], 'E66.9': ['99.28'],
     'Z00.0': ['93.99']
 }
-
+#Set tanggal awal & hari ini MULAI DATA SAMPE HARI INI
 start_date = dt.date(2024, 1, 1)
 today = dt.date.today()
 
-TARGET_ROWS = 5030  # <<< DI SINI DIGANTI
+TARGET_ROWS = 5030  # <<< DI SINI DIGANTI 5000 buat train test 30 untuk new data
 
-num_patients = 1500
+num_patients = 1500 #Dari 1500 pasien → nanti bisa menghasilkan 5030 klaim. (artinya tiap pasien bisa punya lebih dari 1 klaim)
 
 def generate_nik():
     nik_raw = str(fake.random_number(digits=16))
