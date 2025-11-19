@@ -2,6 +2,7 @@ import pandas as pd
 from faker import Faker
 import random
 import datetime as dt
+import numpy as np
 
 fake = Faker('id_ID')
 
@@ -82,7 +83,7 @@ for nik in patient_NIKs:
 # 4. Tentukan jumlah kunjungan per pasien
 # ----------------------------
 visit_dist = random.choices(
-    population=[1,2,3,4],
+    population=[1,2,3,4,5],
     weights=[0.70,0.20,0.08,0.02],
     k=num_patients
 )
@@ -102,6 +103,11 @@ NIK_list = NIK_list[:TARGET_ROWS]
 # 5. Generate claim rows realistis
 # ----------------------------
 data = []
+def generate_non_sunday(start, end):
+    d = fake.date_between(start, end)
+    while d.weekday() == 6:  # 6 = Minggu
+        d = fake.date_between(start, end)
+    return d
 
 for nik in NIK_list:
     p = patient_master[nik]
@@ -128,9 +134,10 @@ for nik in NIK_list:
         diag_code = random.choice(all_diag_codes)
 
     proc_code = random.choice(procedure_map[diag_code])
+    service_date = generate_non_sunday(start_date, today - dt.timedelta(days=14))
+    claim_date = generate_non_sunday(service_date + dt.timedelta(days=3), today)
 
-    service_date = fake.date_between(start_date=start_date, end_date=today - dt.timedelta(days=14))
-    claim_date = fake.date_between(start_date=service_date + dt.timedelta(days=3), end_date=today)
+    
 
     total_claim_amount = random.randint(400_000, 10_000_000)
         # --- Length of Stay Realistic Mapping ---
@@ -176,9 +183,69 @@ for nik in NIK_list:
         "diagnosis_cost_ratio": total_claim_amount / tarif_standar[diag_code]
     })
 
+
 df = pd.DataFrame(data)
 df = df.sort_values("claim_date")
 
+# ----------------------------
+# 6. Inject noise sesuai proporsi
+# ----------------------------
+num_rows = len(df)
+
+# --- 0.5% Emergency Sunday Service bukan fraud ---
+emergency_idx = np.random.choice(df.index, size=int(0.0001 * num_rows), replace=False)
+
+for i in emergency_idx:
+    original_service = df.at[i, 'service_date']
+    
+    # Dapatkan minggu terdekat (Minggu ke depan)
+    shift_to_sunday = (6 - original_service.weekday()) % 7
+    new_service_date = original_service + dt.timedelta(days=shift_to_sunday)
+
+    df.at[i, 'service_date'] = new_service_date
+
+# 0.5% Sunday claim fraud
+sunday_fraud_idx = np.random.choice(df.index, size=int(0.002 * num_rows), replace=False)
+
+for i in sunday_fraud_idx:
+    # Tentukan claim_date Minggu terdekat (ke depan)
+    base_date = df.at[i, 'claim_date']
+    shift_to_sunday = (6 - base_date.weekday()) % 7
+    new_claim_date = base_date + dt.timedelta(days=shift_to_sunday)
+
+    # Service date dipaksa Jumat (dua hari sebelum Minggu)
+    new_service_date = new_claim_date - dt.timedelta(days=2)
+
+    df.at[i, 'claim_date'] = new_claim_date
+    df.at[i, 'service_date'] = new_service_date
+
+# 5% LOS anomaly (bisa naik/turun drastis tapi realistis)
+los_anomaly_idx = np.random.choice(df.index, size=int(0.0003*num_rows), replace=False)
+for i in los_anomaly_idx:
+    actual_los = df.at[i, 'length_of_stay']
+    if actual_los <= 2:
+        df.at[i, 'length_of_stay'] = actual_los + random.choice([1,2,3])
+    else:
+        df.at[i, 'length_of_stay'] = max(1, actual_los - random.randint(1, actual_los-1))
+
+# 3% inflated cost
+inflated_cost_idx = np.random.choice(df.index, size=int(0.0001*num_rows), replace=False)
+df.loc[inflated_cost_idx, 'total_claim_amount'] *= random.uniform(1.5, 3.0)
+
+# 2% provider anomaly
+provider_anomaly_idx = np.random.choice(df.index, size=int(0.005*num_rows), replace=False)
+for i in provider_anomaly_idx:
+    original_provider = df.at[i, 'provider_id']
+    alternatives = [p for p in provider_list if p != original_provider]
+    df.at[i, 'provider_id'] = random.choice(alternatives)
+
+# 5% realistic fraud pattern (gabungan beberapa field, misal LOS tinggi tapi tarif standar rendah + inflated cost)
+fraud_idx = np.random.choice(df.index, size=int(0.001*num_rows), replace=False)
+for i in fraud_idx:
+    df.at[i, 'length_of_stay'] += random.randint(1,3)
+    df.at[i, 'total_claim_amount'] *= random.uniform(1.2, 2.5)
+
+print("✔ Noise injected according to your proportions!")
 df.to_excel("dummy_claims_2024_2025.xlsx", index=False)
 
 print("✔ 5030 dummy claims generated realistically!")
