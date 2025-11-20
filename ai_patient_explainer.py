@@ -2,7 +2,7 @@ import pandas as pd
 from google import generativeai as genai
 
 # ========== SETUP GEMINI ==========
-genai.configure(api_key="AIzaSyDWASI1ydh57y3BA415_wXVEsjJzM-Mavs")
+genai.configure(api_key="")
 model = genai.GenerativeModel("models/gemini-2.5-flash")
 
 # ========== LOAD FINAL DATASET (PAKSA STRING) ==========
@@ -55,3 +55,4 @@ print("\n==============================")
 print("📌 ANALISIS SPESIFIK PASIEN")
 print("==============================")
 print(resp.text)
+
