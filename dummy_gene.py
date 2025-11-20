@@ -83,7 +83,7 @@ for nik in patient_NIKs:
 # 4. Tentukan jumlah kunjungan per pasien
 # ----------------------------
 visit_dist = random.choices(
-    population=[1,2,3,4,5],
+    population=[1,2,3,4],
     weights=[0.70,0.20,0.08,0.02],
     k=num_patients
 )
@@ -230,7 +230,10 @@ for i in los_anomaly_idx:
 
 # 3% inflated cost
 inflated_cost_idx = np.random.choice(df.index, size=int(0.0001*num_rows), replace=False)
-df.loc[inflated_cost_idx, 'total_claim_amount'] *= random.uniform(1.5, 3.0)
+df.loc[inflated_cost_idx, 'total_claim_amount'] = (
+    df.loc[inflated_cost_idx, 'total_claim_amount'] * random.uniform(1.5, 3.0)
+).astype(int)
+
 
 # 2% provider anomaly
 provider_anomaly_idx = np.random.choice(df.index, size=int(0.005*num_rows), replace=False)
@@ -243,7 +246,106 @@ for i in provider_anomaly_idx:
 fraud_idx = np.random.choice(df.index, size=int(0.001*num_rows), replace=False)
 for i in fraud_idx:
     df.at[i, 'length_of_stay'] += random.randint(1,3)
-    df.at[i, 'total_claim_amount'] *= random.uniform(1.2, 2.5)
+    df.at[i, 'total_claim_amount'] = int(
+    df.at[i, 'total_claim_amount'] * random.uniform(1.2, 2.5)
+    )
+
+# -----------------------------------------
+# 7. Late claim (0.07%)
+# -----------------------------------------
+late_claim_idx = np.random.choice(df.index, size=int(0.0007 * num_rows), replace=False)
+for i in late_claim_idx:
+    df.at[i, 'claim_date'] = df.at[i, 'service_date'] + dt.timedelta(days=random.randint(40, 90))
+
+
+# -----------------------------------------
+# 8. Gender error (0.04%)
+# -----------------------------------------
+gender_error_idx = np.random.choice(df.index, size=int(0.0004 * num_rows), replace=False)
+for i in gender_error_idx:
+    df.at[i, 'gender'] = 'M' if df.at[i, 'gender'] == 'F' else 'F'
+
+
+# -----------------------------------------
+# 9. Medical diagnosis typo (0.06%) 
+# Diagnosis diganti ke kode 1 prefix sama (typo realistis)
+# -----------------------------------------
+def get_similar_diag(code):
+    prefix = code[0]   # ambil huruf pertama
+    same_prefix = [d for d in all_diag_codes if d[0] == prefix and d != code]
+    return random.choice(same_prefix) if same_prefix else code
+
+med_typo_idx = np.random.choice(df.index, size=int(0.0006 * num_rows), replace=False)
+for i in med_typo_idx:
+    df.at[i, 'diagnosis_code'] = get_similar_diag(df.at[i, 'diagnosis_code'])
+
+
+# -----------------------------------------
+# 10. Missing procedure (0.01%)
+# -----------------------------------------
+missing_proc_idx = np.random.choice(df.index, size=int(0.0001 * num_rows), replace=False)
+for i in missing_proc_idx:
+    df.at[i, 'procedure_code'] = None
+    df.at[i, 'num_procedures'] = max(0, df.at[i, 'num_procedures'] - 1)
+
+
+# -----------------------------------------
+# 11. High-frequency visitor (0.09%)
+# Tambah kunjungan palsu → service_date mundur 1–5 hari
+# -----------------------------------------
+high_visit_idx = np.random.choice(df.index, size=int(0.0009 * num_rows), replace=False)
+for i in high_visit_idx:
+    df.at[i, 'service_date'] = df.at[i, 'claim_date'] - dt.timedelta(days=random.randint(0, 2))
+
+
+# -----------------------------------------
+# 12. Diagnosis–procedure mismatch (0.02%)
+# diagnosis sengaja diganti ke group lain
+# -----------------------------------------
+def get_wrong_diag(diag_code):
+    for group, codes in diagnosis_groups.items():
+        if diag_code in codes:
+            other_groups = {g: codes2 for g, codes2 in diagnosis_groups.items() if g != group}
+            return random.choice(random.choice(list(other_groups.values())))
+    return diag_code
+
+mismatch_idx = np.random.choice(df.index, size=int(0.0002 * num_rows), replace=False)
+for i in mismatch_idx:
+    df.at[i, 'diagnosis_code'] = get_wrong_diag(df.at[i, 'diagnosis_code'])
+
+
+# -----------------------------------------
+# 13. Upgrade diagnosis (0.09%)
+# Naikkan severity → contoh J00 -> J18.9
+# -----------------------------------------
+upgrade_map = {
+    'J00': 'J18.9',  # common ISPA → pneumonia
+    'J18.9': 'J18.9',
+    'I10': 'I25.1',
+    'E11': 'E66.9',
+    'N39.0': 'N39.0',
+    'K29.7': 'K21.0',
+    'A09': 'K29.7',
+    'R50.9': 'J18.9',
+    'Z03.8': 'R50.9',
+    'Z34.0': 'O80',
+}
+
+upgrade_idx = np.random.choice(df.index, size=int(0.0009 * num_rows), replace=False)
+for i in upgrade_idx:
+    old = df.at[i, 'diagnosis_code']
+    df.at[i, 'diagnosis_code'] = upgrade_map.get(old, old)
+
+
+# -----------------------------------------
+# 14. Diagnosis count inflated (0.04%)
+# num_diagnoses = 4–6
+# -----------------------------------------
+diag_inflate_idx = np.random.choice(df.index, size=int(0.0004 * num_rows), replace=False)
+for i in diag_inflate_idx:
+    df.at[i, 'num_diagnoses'] = random.randint(4, 6)
+
+
 
 print("✔ Noise injected according to your proportions!")
 df.to_excel("dummy_claims_2024_2025.xlsx", index=False)
