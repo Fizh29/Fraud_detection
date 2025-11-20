@@ -4,7 +4,7 @@ import numpy as np
 import joblib
 
 # Load Gemini
-genai.configure(api_key="AIzaSyDWASI1ydh57y3BA415_wXVEsjJzM-Mavs")
+genai.configure(api_key="")
 
 model = joblib.load("model_ensemble.pkl")
 shap_values = np.load("shap_values.npy")
@@ -44,3 +44,4 @@ result = genai.GenerativeModel("gemini-pro").generate_content(prompt)
 
 print("\n=== Gemini Fraud Analysis ===\n")
 print(result.text)
+
