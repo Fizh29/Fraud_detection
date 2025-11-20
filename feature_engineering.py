@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 # === 1️⃣ BACA DATA DUMMY HASIL GENERATOR ===
-df = pd.read_excel('dummy_claims_2024_2025.xlsx')
+df = pd.read_csv('dummy_claims_2024_2025.csv', dtype={"NIK": str})
 
 # Pastikan format tanggal
 df['claim_date'] = pd.to_datetime(df['claim_date'])
@@ -144,7 +144,7 @@ df['service_mix_index'] = df['provider_id'].map(entropy_map)
 
 # === 4️⃣ SIMPAN ===
 df = df.sort_values(by='claim_date')
-df.to_excel('dummy_claims_with_features.xlsx', index=False)
+df.to_csv('dummy_claims_with_features.csv', index=False)
 
 # === 5️⃣ OUTPUT ===
 cols_show = [
@@ -155,5 +155,5 @@ cols_show = [
     'sudden_spike_flag', 'avg_claim_per_patient',
     'claim_fragmentation_score', 'service_mix_index'
 ]
-
+print(df['NIK'].head())
 print(df[cols_show].head(10))

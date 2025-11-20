@@ -1,8 +1,11 @@
 import pandas as pd
 import numpy as np
 
-df = pd.read_excel("dummy_claims_with_features.xlsx")
+df = pd.read_csv("dummy_claims_with_features.csv", dtype={"NIK": str})
 
+# Convert tanggal → datetime wajib
+df['claim_date'] = pd.to_datetime(df['claim_date'])
+df['service_date'] = pd.to_datetime(df['service_date'])
 diagnosis_groups = {
     "ISPA": ['J00', 'J18.9', 'J45.9'],
     "Metabolic": ['E11', 'E66.9'],
@@ -130,8 +133,8 @@ df['fraud_label'] = df['fraud_score'].apply(assign_label)
 training_df = df.iloc[:5000].copy()
 new_claims_df = df.iloc[5000:].copy()
 
-training_df.to_excel("dummy_claims_with_fraud_label.xlsx", index=False)
-new_claims_df.to_excel("new_claims_30.xlsx", index=False)
+training_df.to_csv("dummy_claims_with_fraud_label.csv", index=False)
+new_claims_df.to_csv("new_claims_30.csv", index=False)
 
 print("✔ Hard tuning completed.")
 print("✔ 5000 labeled claims saved.")

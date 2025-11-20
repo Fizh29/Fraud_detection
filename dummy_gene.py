@@ -345,10 +345,11 @@ diag_inflate_idx = np.random.choice(df.index, size=int(0.0004 * num_rows), repla
 for i in diag_inflate_idx:
     df.at[i, 'num_diagnoses'] = random.randint(4, 6)
 
+df['NIK'] = df['NIK'].astype(str)
 
-
+print(df['NIK'].head())
 print("✔ Noise injected according to your proportions!")
-df.to_excel("dummy_claims_2024_2025.xlsx", index=False)
+df.to_csv("dummy_claims_2024_2025.csv", index=False)
 
 print("✔ 5030 dummy claims generated realistically!")
 print(df.head())

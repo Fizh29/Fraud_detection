@@ -5,7 +5,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.preprocessing import StandardScaler
 
-df = pd.read_excel("dummy_claims_with_fraud_label.xlsx")
+df = pd.read_csv("dummy_claims_with_fraud_label.csv", dtype={"NIK": str})
 
 features = [
     'age','NIK_valid','biometric_flag','num_diagnoses','num_procedures',
