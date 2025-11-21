@@ -4,8 +4,8 @@ import pandas as pd
 # 1. LOAD DATA
 # ===============================
 print("Loading datasets...")
-df_old = pd.read_csv("dummy_claims_with_fraud_label.csv", dtype={"NIK": str})
-df_new = pd.read_csv("new_claims_30.csv", dtype={"NIK": str})
+df_old = pd.read_csv("Data_Claims_classification.csv", dtype={"NIK": str})
+df_new = pd.read_csv("new_claims.csv", dtype={"NIK": str})
 
 # ===============================
 # 2. CLEANING DUMMY OLD DATA

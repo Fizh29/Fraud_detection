@@ -1,0 +1,2 @@
+NIK,NIK_valid,biometric_flag,age,gender,provider_id,diagnosis_code,procedure_code,num_diagnoses,num_procedures,length_of_stay,total_claim_amount,service_date,claim_date,verification_method,tarif_standar_diagnosis,diagnosis_cost_ratio
+9964901059716483,1,1,62,F,RS008,N39.0,57.94,3,4,0,7316503,2024-10-19,2025-11-20,manual,2200000,3.325683181818182

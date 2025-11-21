@@ -1,0 +1,127 @@
+=========================================================
+FRAUD DETECTION PIPELINE - README
+=========================================================
+
+Folder ini berisi keseluruhan pipeline untuk mendeteksi 
+klaim asuransi yang berpotensi fraud menggunakan:
+
+1. Dummy data generator (synthetic claims)
+2. Feature engineering
+3. Rule-based fraud labeling
+4. Random Forest classification model
+5. Prediction untuk data baru
+6. Visualisasi + hasil prediksi
+7. Docker (opsional) untuk menjalankan pipeline otomatis
+
+=========================================================
+STRUKTUR FILE
+=========================================================
+
+/fraud_detection
+│
+├── dummy_gen.py                -> Generate 5030 dummy claims
+├── feature_engineering.py      -> Hitung fitur tambahan dari klaim
+├── fraud_label.py              -> Beri label NORMAL / MEDIUM / HIGH
+├── classification_RF.py        -> Train + save model RandomForest
+├── new_claims_prediction.py    -> Prediksi 30 klaim terbaru
+│
+├── main_pipeline.py            -> Otomatis jalankan seluruh modul
+│
+├── fraud_model.pkl             -> Model hasil training
+│
+├── dummy_claims_2024_2025.xlsx -> hasil dari dummy gene
+├── dummy_claims_with_features  -> hasil dari perhitungan feature engineering
+├──dummy_claims_with_fraud_label -> hasil dari fraud_label
+├── new_claims_30.xlsx          -> 30 klaim terakhir untuk testingfraud_label
+├── prediction_result.xlsx      -> Hasil prediksi data baru
+│
+├── nanti akan ada beberapa file gambar hasil dari visualisasi 
+├── Dockerfile                  -> Untuk menjalankan melalui Docker
+└── README.txt                  -> File ini
+
+
+=========================================================
+CARA MENJALANKAN SECARA MANUAL (TANPA DOCKER)
+=========================================================
+
+1. Pastikan Python 3.10+ sudah terinstall.
+2. Install library:
+
+   pip install pandas numpy scikit-learn imbalanced-learn \
+               openpyxl faker joblib matplotlib seaborn
+
+3. Jalankan secara berurutan:
+
+   python dummy_gen.py
+   python feature_engineering.py
+   python fraud_label.py
+   python classification_RF.py
+   python new_claims_prediction.py
+
+4. Hasil model tersimpan di:
+   - fraud_model.pkl
+
+5. Hasil prediksi tersimpan di:
+   - prediction_result.xlsx
+
+=========================================================
+CARA MENJALANKAN VIA MAIN PIPELINE (OTOMATIS)
+=========================================================
+Pastikan Python 3.10+ sudah terinstall.
+Install library:
+
+   pip install pandas numpy scikit-learn imbalanced-learn \
+               openpyxl faker joblib matplotlib seaborn
+
+Cukup jalankan:
+
+   python main_pipeline.py
+
+Script ini otomatis menjalankan urutan:
+1. Generate dummy data
+2. Feature engineering
+3. Fraud labeling
+4. Training model
+5. Prediksi data baru
+6. Generate grafik
+
+=========================================================
+CARA MENJALANKAN MENGGUNAKAN DOCKER
+=========================================================
+
+1. Pastikan Docker Desktop sudah terinstall.
+
+2. Build image:
+
+   docker build -t fraud-pipeline .
+
+3. Jalankan container dengan mounting folder:
+
+   docker run --rm -v "ABSOLUTE_PATH/fraud_detection:/app" fraud-pipeline
+
+Folder lokal akan ikut di-update oleh container:
+- file Excel baru
+- model terbaru
+- grafik terbaru
+
+=========================================================
+CATATAN PENTING
+=========================================================
+
+- File akan selalu direwrite setiap pipeline dijalankan.
+- Jika ingin menyimpan hasil lama, pindahkan dulu filenya.
+- Hasil visualisasi disimpan dalam format PNG di folder yang sama.
+- Semua data dummy hanya untuk keperluan demo / riset.
+- Threshold klasifikasi bisa kamu ubah di classification_RF.py.
+- Semakin banyak fitur, semakin akurat modelnya (biasanya).
+
+=========================================================
+AUTHOR
+=========================================================
+
+Pipeline dibuat untuk mempermudah implementasi Fraud Detection 
+menggunakan Python + Machine Learning.
+
+Jika ada error atau butuh bantuan, hubungi pembuat script.
+
+=========================================================
