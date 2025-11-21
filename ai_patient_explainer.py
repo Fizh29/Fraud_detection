@@ -2,7 +2,7 @@ import pandas as pd
 from google import generativeai as genai
 
 # ========== SETUP GEMINI ==========
-genai.configure(api_key="")
+genai.configure(api_key="AIzaSyDWASI1ydh57y3BA415_wXVEsjJzM-Mavs")
 model = genai.GenerativeModel("models/gemini-2.5-flash")
 
 # ========== LOAD FINAL DATASET (PAKSA STRING) ==========
@@ -51,8 +51,10 @@ Tulis padat, jelas, dan actionable.
 
 resp = model.generate_content(prompt)
 
-print("\n==============================")
-print("📌 ANALISIS SPESIFIK PASIEN")
-print("==============================")
-print(resp.text)
+output_filename = f"AI_PATIENT_ANALYSIS_{nik_input}.txt"
+
+with open(output_filename, "w", encoding="utf-8") as f:
+    f.write(resp.text)
+
+print(f"✔ Analisis pasien disimpan ke: {output_filename}")
 

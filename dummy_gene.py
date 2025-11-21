@@ -50,8 +50,8 @@ all_diag_codes = [d for v in diagnosis_groups.values() for d in v]
 start_date = dt.date(2024, 1, 1)
 today = dt.date.today()
 
-TARGET_ROWS = 5030
-num_patients = 1500
+TARGET_ROWS = 7500
+num_patients = 1900
 
 # Provider list
 provider_list = [f"RS{str(i).zfill(3)}" for i in range(1, 11)]
@@ -291,7 +291,7 @@ for i in missing_proc_idx:
 
 # -----------------------------------------
 # 11. High-frequency visitor (0.09%)
-# Tambah kunjungan palsu → service_date mundur 1–5 hari
+# Tambah kunjungan palsu → service_date mundur 1–5 
 # -----------------------------------------
 high_visit_idx = np.random.choice(df.index, size=int(0.0009 * num_rows), replace=False)
 for i in high_visit_idx:
@@ -347,9 +347,10 @@ for i in diag_inflate_idx:
 
 df['NIK'] = df['NIK'].astype(str)
 
+
 print(df['NIK'].head())
 print("✔ Noise injected according to your proportions!")
 df.to_csv("dummy_claims_2024_2025.csv", index=False)
 
-print("✔ 5030 dummy claims generated realistically!")
+print("✔ 7500 dummy claims generated realistically!")
 print(df.head())

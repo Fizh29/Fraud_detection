@@ -1,3 +1,11 @@
+ # seaborn \
+    # joblib \
+    # google-generativeai \
+# numpy \
+    # scikit-learn \
+    # imbalanced-learn \
+    # openpyxl \
+    # faker \
 FROM python:3.10-slim
 
 # Faster install
@@ -8,8 +16,12 @@ COPY . /app
 WORKDIR /app
 
 # Install dependencies
-RUN pip install pandas numpy scikit-learn imbalanced-learn \
-    openpyxl faker matplotlib seaborn joblib
+RUN pip install \
+    pandas \
+    matplotlib \
+    streamlit
 
-# Run the entire fraud pipeline
+# Default command
+EXPOSE 8501
+
 CMD ["python", "main_pipeline.py"]

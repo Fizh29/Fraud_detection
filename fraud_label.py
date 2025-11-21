@@ -129,9 +129,22 @@ def assign_label(score):
 
 df['fraud_label'] = df['fraud_score'].apply(assign_label)
 
+
+
 # SPLIT DATA
-training_df = df.iloc[:5000].copy()
-new_claims_df = df.iloc[5000:].copy()
+new_claims_count = 30  # fix 30 klaim baru
+
+# Pastikan total row cukup
+if len(df) <= new_claims_count:
+    raise ValueError("Data kurang untuk split klaim baru")
+
+training_df = df.iloc[:-new_claims_count].copy()
+new_claims_df = df.iloc[-new_claims_count:].copy()
+
+print(f"Total data: {len(df)}")
+print(f"Training: {len(training_df)}")
+print(f"New claims: {len(new_claims_df)}")
+
 
 training_df.to_csv("dummy_claims_with_fraud_label.csv", index=False)
 new_claims_df.to_csv("new_claims_30.csv", index=False)

@@ -6,11 +6,12 @@ import seaborn as sns
 import numpy as np
 from matplotlib.lines import Line2D
 
+
 # === 1. Load model ===
 model = joblib.load("fraud_model.pkl")
 
 # === 2. Load new claims ===
-df_new = pd.read_excel("new_claims_30.xlsx")
+df_new = pd.read_csv("new_claims_30.csv", dtype={"NIK": str})
 
 # === 3. Ensure same features ===
 features = [
@@ -32,9 +33,9 @@ y_pred = model.predict(X_new)
 df_new["predicted_label"] = y_pred
 df_new["fraud_prob_HIGH"] = model.predict_proba(X_new)[:, 0]
 
-# === 5. Save results ===
-df_new.to_excel("prediction_result.xlsx", index=False)
-print("Predictions saved → prediction_result.xlsx")
+# === 5. Save ===
+df_new.to_csv("prediction_result.csv", index=False)
+print("Predictions saved → prediction_result.csv")
 
 # === 6. Evaluation ===
 print("\n=== Evaluation on NEW CLAIMS ===")

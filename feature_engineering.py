@@ -142,6 +142,8 @@ entropy_map = df.groupby('provider_id')['diagnosis_code'].apply(service_mix_entr
 df['service_mix_index'] = df['provider_id'].map(entropy_map)
 
 
+
+
 # === 4️⃣ SIMPAN ===
 df = df.sort_values(by='claim_date')
 df.to_csv('dummy_claims_with_features.csv', index=False)
