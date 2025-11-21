@@ -239,7 +239,7 @@ Ringkas, terstruktur, dan actionable.
 
             # Panggil AI (Gemini) — gunakan konfigurasi dari file lain (sudah diimport)
             with st.spinner("Menghasilkan ringkasan AI..."):
-                genai.configure(api_key="AIzaSyC0nr8EXZV0gXfr03InAuPJRWlj6u9_-_4")
+                genai.configure(api_key="")
                 model = genai.GenerativeModel("models/gemini-2.5-flash")
                 resp = model.generate_content(dashboard_summary_prompt)
                 ai_summary_text = resp.text
@@ -416,7 +416,7 @@ with chart_col2:
 #             try:
                
 #                 with st.spinner("Sedang menganalisis dengan AI..."):
-#                     genai.configure(api_key="AIzaSyC0nr8EXZV0gXfr03InAuPJRWlj6u9_-_4")
+#                     genai.configure(api_key="")
 #                     model = genai.GenerativeModel("models/gemini-2.5-flash")
 #                     resp = model.generate_content(prompt)
 #                     analysis_result = resp.text
@@ -528,7 +528,7 @@ Tulis padat, jelas, dan actionable.
 """
             try:
                 with st.spinner("Sedang menganalisis dengan AI..."):
-                    genai.configure(api_key="AIzaSyC0nr8EXZV0gXfr03InAuPJRWlj6u9_-_4")
+                    genai.configure(api_key="")
                     model = genai.GenerativeModel("models/gemini-2.5-flash")
                     resp = model.generate_content(prompt)
                     analysis_result = resp.text
