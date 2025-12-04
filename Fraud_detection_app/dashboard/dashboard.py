@@ -1,6 +1,9 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+import os
+import subprocess
+import time
 from google import generativeai as genai
 st.set_page_config(
     page_title="Fraud Detection Dashboard",
@@ -239,7 +242,7 @@ Ringkas, terstruktur, dan actionable.
 
             # Panggil AI (Gemini) — gunakan konfigurasi dari file lain (sudah diimport)
             with st.spinner("Menghasilkan ringkasan AI..."):
-                genai.configure(api_key="")
+                genai.configure(api_key="AIzaSyBAwOHUKf6zlp6W8rC9XuyaWuiobXE4QuY")
                 model = genai.GenerativeModel("models/gemini-2.5-flash")
                 resp = model.generate_content(dashboard_summary_prompt)
                 ai_summary_text = resp.text
@@ -337,101 +340,42 @@ with chart_col1:
 
 
 with chart_col2:
-    # Distribusi fraud label
+    # Distribusi fraud label (make it same style as Distribusi Gender — Plotly pie)
     if "fraud_label" in df.columns:
         st.markdown("#### Distribusi Fraud Label")
-        label_counts = df["fraud_label"].value_counts()
-        fig, ax = plt.subplots(figsize=(4, 4))
-        label_counts.plot.pie(autopct='%1.1f%%', ax=ax, colors=["#90caf9", "#f48fb1", "#ffe082"])
-        ax.set_ylabel("")
-        st.pyplot(fig)
+        label_counts = df["fraud_label"].value_counts().reset_index()
+        label_counts.columns = ["fraud_label", "count"]
+
+        # Define color mapping to keep consistent palette and ordering
+        color_map = {
+            "HIGH": "#f48fb1",
+            "MEDIUM": "#ffe082",
+            "NORMAL": "#90caf9"
+        }
+
+        fig = px.pie(
+            label_counts,
+            names="fraud_label",
+            values="count",
+            title="Distribusi Fraud Label",
+            color="fraud_label",
+            color_discrete_map=color_map,
+            hole=0.3
+        )
+
+        fig.update_traces(
+            textposition="inside",
+            textinfo="percent+label",
+            hovertemplate="<b>%{label}</b><br>Jumlah: %{value}<br>Persentase: %{percent}<extra></extra>"
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
     # Top provider
     elif "provider" in df.columns:
         st.markdown("#### Top 5 Provider by Claims")
         top_prov = df["provider"].value_counts().head(5)
         st.bar_chart(top_prov)
 
-
-
-# #
-# # ===== Filter Data (Opsional) =====
-# with st.expander("🔍 Filter Data", expanded=False):
-#     columns = df.columns.tolist()
-#     for col in columns:
-#         if df[col].dtype == "object":
-#             options = df[col].unique().tolist()
-#             selected = st.multiselect(f"{col}", options, default=options)
-#             df = df[df[col].isin(selected)]
-#         elif df[col].dtype in ["int64", "float64"]:
-#             min_val, max_val = df[col].min(), df[col].max()
-#             if pd.notna(min_val) and pd.notna(max_val) and min_val != max_val:
-#                 selected = st.slider(f"{col}", float(min_val), float(max_val), (float(min_val), float(max_val)))
-#                 df = df[(df[col] >= selected[0]) & (df[col] <= selected[1])]
-#             elif pd.notna(min_val) and pd.notna(max_val) and min_val == max_val:
-#                 st.info(f"Kolom '{col}' hanya memiliki satu nilai: {min_val}")
-#             else:
-#                 st.info(f"Kolom '{col}' tidak memiliki data untuk difilter.")
-
-
-# # ===== Data Table =====
-# st.markdown("### 🗂 Data Sample")
-# st.dataframe(df.head(30), use_container_width=True)
-
-# # ===== Statistik Dasar =====
-# with st.expander("📈 Statistik Dasar", expanded=False):
-#     st.write(df.describe())
-
-#     # ===== AI PATIENT ANALYSIS REALTIME =====
-# st.markdown("### 🧑‍⚕ AI Patient Analysis (Realtime)")
-
-# with st.form("ai_patient_form"):
-#     nik_input = st.text_input("Masukkan NIK untuk dianalisis", "")
-#     submitted = st.form_submit_button("Analisa Sekarang")
-#     analysis_result = None
-
-#     if submitted and nik_input:
-#         rows = df[df["NIK"] == nik_input.strip()].sort_values("claim_date")
-#         if rows.empty:
-#             analysis_result = f"❌ NIK tidak ditemukan: {nik_input}\n\nCoba cek 5 NIK pertama:\n{df['NIK'].head().to_list()}"
-#         else:
-#             # Siapkan prompt seperti di ai_patient_explainer.py
-#             all_claims = rows.to_dict(orient="records")
-#             claims_text = "\n\n".join([str(c) for c in all_claims])
-#             prompt = f"""
-# Berikan analisis lengkap untuk 1 pasien asuransi berdasarkan semua klaim berikut:
-
-# {claims_text}
-
-# Jelaskan secara profesional dalam bahasa Indonesia:
-
-# 1. Penyebab fraud_score pasien ini (jelaskan fitur apa yang mempengaruhi).
-# 2. Apakah pasien ini HIGH / MEDIUM / NORMAL risk dan alasannya.
-# 3. Pola-pola mencurigakan dari seluruh riwayat klaim NIK ini.
-# 4. Risiko tindak kecurangan yang mungkin terjadi.
-# 5. Rekomendasi tindakan lanjut untuk auditor.
-
-# Tulis padat, jelas, dan actionable.
-# """
-#             # Proses dengan Gemini jika tersedia, jika tidak tampilkan prompt saja
-#             try:
-               
-#                 with st.spinner("Sedang menganalisis dengan AI..."):
-#                     genai.configure(api_key="")
-#                     model = genai.GenerativeModel("models/gemini-2.5-flash")
-#                     resp = model.generate_content(prompt)
-#                     analysis_result = resp.text
-#             except Exception as e:
-#                 analysis_result = f"Gagal memproses analisis AI secara realtime.\n\nPrompt yang digunakan:\n{prompt}\n\nError: {e}"
-
-#     if submitted:
-#         st.markdown(
-#             """
-#             <div style="border:2px solid #f48fb1; border-radius:8px; padding:12px; background-color:#fff7fb; max-height:500px; overflow:auto; font-size:15px;">
-#             <pre style="white-space:pre-wrap; word-break:break-word; margin:0;">{}</pre>
-#             </div>
-#             """.format(analysis_result if analysis_result else "Silakan masukkan NIK dan klik Analisa."),
-#             unsafe_allow_html=True
-#         )
 
 
 
@@ -528,7 +472,7 @@ Tulis padat, jelas, dan actionable.
 """
             try:
                 with st.spinner("Sedang menganalisis dengan AI..."):
-                    genai.configure(api_key="")
+                    genai.configure(api_key="AIzaSyBAwOHUKf6zlp6W8rC9XuyaWuiobXE4QuY")
                     model = genai.GenerativeModel("models/gemini-2.5-flash")
                     resp = model.generate_content(prompt)
                     analysis_result = resp.text
@@ -647,3 +591,32 @@ with st.expander("📥 Upload New Claims CSV & Run Pipeline", expanded=False):
                 st.error(f"Pipeline failed while running subprocess: {e}")
             except Exception as e:
                 st.error(f"Error processing uploaded file: {e}")
+ADMIN_PASSWORD = os.environ.get("ADMIN_REVIEW_PASS", "admin123")
+
+# letakkan kontrol kecil di kanan atas
+_top_cols = st.columns([8,1])
+with _top_cols[1]:
+    st.markdown("**Admin**")
+    admin_pw = st.text_input("", type="password", key="admin_pw", placeholder="Admin password")
+    if st.button("Run AI Dev Review", key="run_ai_dev"):
+        if admin_pw == ADMIN_PASSWORD:
+            try:
+                with st.spinner("Menjalankan ai_dev_reviewer.py..."):
+                    # jalankan script reviewer yang akan menulis AI_DEV_REVIEW.txt
+                    subprocess.run(["python", "ai_dev_reviewer.py"], check=True)
+                    # beri jeda kecil agar file ditulis
+                    time.sleep(0.6)
+
+                if os.path.exists("AI_DEV_REVIEW.txt"):
+                    with open("AI_DEV_REVIEW.txt", "rb") as f:
+                        data = f.read()
+                    st.success("AI developer review generated.")
+                    st.download_button("Download AI_DEV_REVIEW.txt", data=data, file_name="AI_DEV_REVIEW.txt", mime="text/plain")
+                else:
+                    st.error("AI_DEV_REVIEW.txt tidak ditemukan setelah menjalankan reviewer.")
+            except subprocess.CalledProcessError as e:
+                st.error(f"Gagal menjalankan ai_dev_reviewer.py: {e}")
+            except Exception as e:
+                st.error(f"Error: {e}")
+        else:
+            st.error("Password admin salah.")

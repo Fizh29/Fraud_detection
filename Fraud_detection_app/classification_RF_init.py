@@ -3,7 +3,6 @@ from sklearn.model_selection import train_test_split
 from imblearn.over_sampling import SMOTE
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, confusion_matrix
-from sklearn.preprocessing import StandardScaler
 
 df = pd.read_csv("dummy_claims_with_fraud_label.csv", dtype={"NIK": str})
 

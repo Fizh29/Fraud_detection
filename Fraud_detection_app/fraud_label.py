@@ -150,5 +150,4 @@ training_df.to_csv("dummy_claims_with_fraud_label.csv", index=False)
 new_claims_df.to_csv("new_claims_30.csv", index=False)
 
 print("✔ Hard tuning completed.")
-print("✔ 5000 labeled claims saved.")
-print("✔ 30 evaluation claims saved.")
+

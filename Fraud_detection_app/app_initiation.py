@@ -18,15 +18,7 @@ os.system("python new_claims.py")
 print("=== Menggabung Dataset ===")
 os.system("python gabung_dataset_init.py")
 
-# print("=== melakukan analasis dan visualisasi data ===")
-# os.system("python aidashboard.py")
 
-# print("=== Masukkan NIK untuk analisis dari salah satu NIK ===")
-# os.system("python ai_patient_explainer.py")
-
-# print("=== Untuk developer  ===")
-# os.system("python ai_dev_reviewer.py")
-# os.system("python dashboard/dashboard.py")
 
 os.system("streamlit run dashboard/dashboard.py ")
 
